@@ -171,7 +171,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
         scanQR = findViewById(R.id.scanQR);
 
         title = findViewById(R.id.title);
-        title.setText("Instrument View  ");
+        title.setText("View Instrument");
 
         action_search.setVisibility(View.INVISIBLE);
         scanQR.setVisibility(View.INVISIBLE);

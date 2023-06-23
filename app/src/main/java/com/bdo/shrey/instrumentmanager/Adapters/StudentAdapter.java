@@ -1,5 +1,6 @@
 package com.bdo.shrey.instrumentmanager.Adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -61,6 +62,7 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         return new StudentAdapter.StudentViewHolder(v);
     }
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(@NonNull StudentAdapter.StudentViewHolder holder, int position) {
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("Users");
@@ -99,6 +101,13 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         holder.name.setText(student.getName());
         holder.code.setText(student.getId());
         holder.location.setText(student.getLocation());
+        holder.status.setText(student.getStatus());
+
+        if (student.getStatus().equals("Active")){
+            holder.status.setTextColor(Color.GREEN);
+        }else {
+            holder.status.setTextColor(Color.RED);
+        }
 
         if (!(student.getAssigned().equals(""))) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -170,6 +179,7 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
                         public void onClick(View view) {
                             Intent intent = new Intent(context.getApplicationContext(), ViewStudentActivity.class);
                             intent.putExtra("id", student.getId());
+                            intent.putExtra("status", student.getId());
                             context.startActivity(intent);
                         }
                     });
@@ -231,7 +241,7 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
 
     public static class StudentViewHolder extends RecyclerView.ViewHolder {
 
-        TextView name, code, location;
+        TextView name, code, location, status;
         Button view, delete, stat;
 
         public StudentViewHolder(@NonNull View itemView) {
@@ -239,6 +249,7 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
             name = itemView.findViewById(R.id.s_name);
             code = itemView.findViewById(R.id.s_code);
             location = itemView.findViewById(R.id.s_location);
+            status = itemView.findViewById(R.id.s_status);
             view = itemView.findViewById(R.id.viewbtn);
             delete = itemView.findViewById(R.id.deletebtn);
             stat = itemView.findViewById(R.id.btn_stat);

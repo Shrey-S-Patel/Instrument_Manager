@@ -1,16 +1,17 @@
 package com.bdo.shrey.instrumentmanager.Models;
 
 public class Student {
-    private String id, name, location, assigned;
+    private String id, name, location, assigned, status;
 
     public Student() {
     }
 
-    public Student(String id, String name, String location, String assigned) {
+    public Student(String id, String name, String location, String assigned, String status) {
         this.id = id;
         this.name = name;
         this.location = location;
         this.assigned = assigned;
+        this.status = status;
     }
 
     public String getId() {
@@ -43,5 +44,13 @@ public class Student {
 
     public void setAssigned(String assigned) {
         this.assigned = assigned;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -37,11 +37,11 @@ public class CreateStudentActivity extends AppCompatActivity {
     SearchView action_search;
     EditText name, student_id;
     Button btn_create;
-    private Spinner loc_spinner;
-    private ArrayList<String> loc_spinner_list;
+    private Spinner loc_spinner, stat_spinner;
+    private ArrayList<String> loc_spinner_list, stat_spinner_list;
     private ArrayList<StudentLocation> locnum_spin_list;
-    private ArrayAdapter<String> loc_spinner_adapter;
-    private String s_name, s_code, s_location;
+    private ArrayAdapter<String> loc_spinner_adapter, stat_spinner_adapter;
+    private String s_name, s_code, s_location, s_status;
     private String sl_location;
     private int count, code_count;
 
@@ -110,6 +110,26 @@ public class CreateStudentActivity extends AppCompatActivity {
             }
         });
 
+        stat_spinner = findViewById(R.id.s_status);
+
+        stat_spinner_list = new ArrayList<>();
+        stat_spinner_list.add("Active");
+        stat_spinner_list.add("Inactive");
+        stat_spinner_adapter = new ArrayAdapter<String>(CreateStudentActivity.this, android.R.layout.simple_spinner_dropdown_item, stat_spinner_list);
+        stat_spinner.setAdapter(stat_spinner_adapter);
+
+        stat_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                s_status = stat_spinner_list.get(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                Toast.makeText(CreateStudentActivity.this, "Status is Required!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         btn_create = findViewById(R.id.btn_create);
         btn_create.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,7 +140,7 @@ public class CreateStudentActivity extends AppCompatActivity {
                 if (s_name.isEmpty()) {
                     name.setError("Enter name!");
                 } else {
-                    Student student = new Student(s_code, s_name, s_location, "");
+                    Student student = new Student(s_code, s_name, s_location, "",s_status);
                     FirebaseDatabase.getInstance().getReference("Students1").child(s_location).child(s_code).setValue(student);
                     root.child(s_code).setValue(student).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override

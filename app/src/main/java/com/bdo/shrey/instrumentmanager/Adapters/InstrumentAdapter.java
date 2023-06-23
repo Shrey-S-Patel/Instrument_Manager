@@ -54,6 +54,12 @@ public class InstrumentAdapter extends RecyclerView.Adapter<InstrumentAdapter.In
         holder.loc.setText(instrument.getLocation());
         holder.status.setText(instrument.getStatus());
 
+        if (instrument.getStatus().equals("Active")){
+            holder.status.setTextColor(Color.GREEN);
+        }else {
+            holder.status.setTextColor(Color.RED);
+        }
+
 
         if (instrument.getAssigned() != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
