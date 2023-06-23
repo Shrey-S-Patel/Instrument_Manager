@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "990469419609",
+    "project_id": "instrument-manager-b57d7",
+    "storage_bucket": "instrument-manager-b57d7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:990469419609:android:1c9dad811cbd1294d1f748",
+        "android_client_info": {
+          "package_name": "com.bdo.shrey.instrumentmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "990469419609-ebsd1u66p0qrt8920od8dtkm3vemoo03.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkBEzxH3etiD2cWYw761Oxy4EThypbahw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "990469419609-ebsd1u66p0qrt8920od8dtkm3vemoo03.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

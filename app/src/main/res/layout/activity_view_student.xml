@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ViewStudentActivity"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar" />
+
+    <ImageView
+        android:id="@+id/img_qr"
+        android:layout_width="match_parent"
+        android:layout_height="210dp"
+        android:layout_below="@id/toolbar"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:src="@drawable/bars" />
+
+    <TextView
+        android:id="@+id/s_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/img_qr"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="15dp"
+        android:inputType="textCapSentences"
+        android:text="Name"
+        android:textSize="20sp"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/s_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/s_name"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="5dp"
+        android:inputType="textCapSentences"
+        android:text="ID"
+        android:textColor="#a8edea"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/s_loc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/s_id"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="5dp"
+        android:inputType="textCapSentences"
+        android:text="Location"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/s_current"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/s_loc"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="10dp"
+        android:inputType="textCapSentences"
+        android:text="Current Instrument"
+        android:textSize="20sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@id/s_current">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="20dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/i_assign"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:layout_marginTop="10dp"
+                android:text="Assigned Status"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/s_hist"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_below="@+id/s_current"
+                android:layout_marginLeft="25dp"
+                android:layout_marginTop="2dp"
+                android:inputType="textCapSentences"
+                android:text="Student History"
+                android:textSize="17sp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:gravity="center"
+            android:padding="15dp">
+
+            <ImageButton
+                android:id="@+id/generatebtn"
+                android:layout_width="100dp"
+                android:layout_height="38dp"
+                android:background="@drawable/gradient_bg"
+                android:src="@drawable/baseline_share_24" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/assignbtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:strokeColor="@color/yellow"
+                app:strokeWidth="3dp"
+                android:text="Assign"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/receivebtn"
+                android:layout_width="wrap_content"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:strokeColor="@color/blue"
+                app:strokeWidth="3dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="Return"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/editbtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:strokeColor="@color/teal_700"
+                app:strokeWidth="3dp"
+                android:text="Edit"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/deletebtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:strokeColor="@color/purple_700"
+                app:strokeWidth="3dp"
+                android:text="Delete"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
