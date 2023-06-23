@@ -109,6 +109,18 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
             holder.status.setTextColor(Color.RED);
         }
 
+        holder.view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context.getApplicationContext(), ViewStudentActivity.class);
+                intent.putExtra("id", student.getId());
+                intent.putExtra("status", student.getStatus());
+                context.startActivity(intent);
+                Toast.makeText(context.getApplicationContext(), "View Student", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
         if (!(student.getAssigned().equals(""))) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 holder.stat.getBackground().setTint(Color.RED);
@@ -174,15 +186,6 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
                         }
                     });
 
-                    holder.view.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Intent intent = new Intent(context.getApplicationContext(), ViewStudentActivity.class);
-                            intent.putExtra("id", student.getId());
-                            intent.putExtra("status", student.getId());
-                            context.startActivity(intent);
-                        }
-                    });
 
                     button.setOnClickListener(new View.OnClickListener() {
                         @Override

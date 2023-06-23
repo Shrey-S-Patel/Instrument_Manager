@@ -33,6 +33,21 @@
         android:textStyle="italic" />
 
     <TextView
+        android:id="@+id/s_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/img_qr"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="25dp"
+        android:layout_marginBottom="25dp"
+        android:inputType="textCapSentences"
+        android:text="Status"
+        android:layout_alignParentRight="true"
+        android:textSize="20sp"
+        android:textStyle="italic" />
+
+    <TextView
         android:id="@+id/s_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

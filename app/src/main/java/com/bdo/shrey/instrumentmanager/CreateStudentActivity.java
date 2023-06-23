@@ -140,7 +140,7 @@ public class CreateStudentActivity extends AppCompatActivity {
                 if (s_name.isEmpty()) {
                     name.setError("Enter name!");
                 } else {
-                    Student student = new Student(s_code, s_name, s_location, "",s_status);
+                    Student student = new Student(s_code, s_name, s_location, "",s_status, "");
                     FirebaseDatabase.getInstance().getReference("Students1").child(s_location).child(s_code).setValue(student);
                     root.child(s_code).setValue(student).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
