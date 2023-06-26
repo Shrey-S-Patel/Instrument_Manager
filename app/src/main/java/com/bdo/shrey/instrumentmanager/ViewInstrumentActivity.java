@@ -88,7 +88,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
     Dialog dialog;
     private String password;
     //    private Spinner student_spinner;
-    private String stud_select, stud_id;
+    private String stud_select, stud_id, stud_loc;
     private FirebaseAuth mAuth;
     private FirebaseDatabase database_u;
     private ArrayList<String> loc_spinner_list, stat_spinner_list;
@@ -248,7 +248,11 @@ public class ViewInstrumentActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot item : snapshot.getChildren()) {
                     Student student = item.getValue(Student.class);
-                    s_name = String.valueOf(student.getName()) + " - " + String.valueOf(student.getId());
+                    if (!Objects.equals(student.getAssigned(), "")) {
+                        s_name = student.getName() + ", " + student.getId() + " Has the " + student.getAssigned();
+                    }else {
+                        s_name = String.valueOf(student.getName()) + ", " + String.valueOf(student.getId());
+                    }
                     student_list.add(s_name);
                     students_details_list.add(student);
                 }
@@ -428,7 +432,11 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                             assign_btn.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    DialogPlus dialogPlus = DialogPlus.newDialog(ViewInstrumentActivity.this).setGravity(Gravity.CENTER).setMargin(50, 0, 50, 0).setContentHolder(new ViewHolder(R.layout.dialog_assign)).setContentBackgroundResource(com.google.android.material.R.color.cardview_dark_background).setExpanded(false).create();
+                                    DialogPlus dialogPlus = DialogPlus.newDialog(ViewInstrumentActivity.this).setGravity(Gravity.CENTER)
+                                            .setMargin(50, 0, 50, 0)
+                                            .setContentHolder(new ViewHolder(R.layout.dialog_assign))
+                                            .setContentBackgroundResource(com.google.android.material.R.color.cardview_dark_background)
+                                            .setExpanded(false).create();
 
                                     View holderView = dialogPlus.getHolderView();
                                     TextView editText = holderView.findViewById(R.id.editTextNumber);
@@ -444,7 +452,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
 
                                     student_list = new ArrayList<>();
                                     students_details_list = new ArrayList<>();
-                                    stud_spinner_adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, student_list);
+                                    stud_spinner_adapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.list_white_text, R.id.list_content, student_list);
                                     ShowData();
 
                                     student.setOnClickListener(new View.OnClickListener() {
@@ -487,6 +495,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                                     Student s1 = students_details_list.get(position);
                                                     if (s1.getAssigned().equals("")) {
                                                         stud_id = s1.getId();
+                                                        stud_loc = s1.getLocation();
                                                         String student_text = stud_spinner_adapter.getItem(position) + " - " + stud_id;
                                                         student.setText(student_text);
                                                         // Dismiss dialog
@@ -531,8 +540,13 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                                 SimpleDateFormat sdf = new SimpleDateFormat("'On 'dd-MMMM-yy' at 'HH:mm a", Locale.getDefault());
                                                 String currentDateandTime = sdf.format(new Date());
                                                 Assign assign = new Assign(instrument.getId(), stud_id, stud_select, currentDateandTime, u_name);
+
                                                 spinner_ref.child(stud_id).updateChildren(s_map);
+                                                FirebaseDatabase.getInstance().getReference("Students1").child(stud_loc).child(stud_id).updateChildren(s_map);
+
                                                 reference.child(instrument.getId()).updateChildren(i_map);
+                                                reference1.child(instrument.getCategory()).child(instrument.getId()).updateChildren(i_map);
+
                                                 assign_ref.child(instrument.getId()).setValue(assign).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void unused) {
@@ -606,6 +620,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                                     Map<String, Object> i_map = new HashMap<>();
                                                     i_map.put("/assigned", "");
                                                     reference.child(instrument.getId()).updateChildren(i_map);
+                                                    reference1.child(instrument.getCategory()).child(instrument.getId()).updateChildren(i_map);
                                                     dialogPlus.dismiss();
                                                     Toast.makeText(ViewInstrumentActivity.this, "Returned Successfully!", Toast.LENGTH_SHORT).show();
                                                     Intent i = getIntent();
