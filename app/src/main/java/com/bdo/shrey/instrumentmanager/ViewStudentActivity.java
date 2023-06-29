@@ -22,6 +22,7 @@ import androidx.appcompat.widget.SearchView;
 
 import com.bdo.shrey.instrumentmanager.Models.Assign;
 import com.bdo.shrey.instrumentmanager.Models.Category;
+import com.bdo.shrey.instrumentmanager.Models.History;
 import com.bdo.shrey.instrumentmanager.Models.Instrument;
 import com.bdo.shrey.instrumentmanager.Models.SDeletes;
 import com.bdo.shrey.instrumentmanager.Models.Student;
@@ -38,8 +39,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.ViewHolder;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -174,7 +178,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                         finish();
                                     }
                                 });
-                                DialogPlus dialogPlus = DialogPlus.newDialog(getApplicationContext())
+                                DialogPlus dialogPlus = DialogPlus.newDialog(ViewStudentActivity.this)
                                         .setGravity(Gravity.CENTER)
                                         .setMargin(50, 0, 50, 0)
                                         .setContentHolder(new ViewHolder(R.layout.dialog_password))
@@ -247,6 +251,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                                      StudentLocation loc = snapshot.getValue(StudentLocation.class);
 
                                                     if (snapshot.exists()) {
+                                                        assert loc != null;
                                                         loc_count = loc.getCount();
                                                         loc_count = loc_count - 1;
                                                     }
@@ -424,8 +429,16 @@ public class ViewStudentActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(View view) {
                                         Map<String, Object> map = new HashMap<>();
+                                        Map<String, Object> map_hist = new HashMap<>();
                                         if (!Objects.equals(student.getName(), name.getText()) || !Objects.equals(student.getLocation(), s_loc) || !Objects.equals(student.getStatus(), s_stat) || !Objects.equals(student.getCurrent(), s_curr)){
-                                            map.put(student.getId(), new Student(student.getId(), name.getText().toString(), s_loc, student.getAssigned(), s_stat, s_curr));
+                                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+                                            String currentDateandTime = sdf.format(new Date());
+                                            map.put(student.getId(), new Student(student.getId(), name.getText().toString(), s_loc, student.getAssigned(), s_stat, s_curr, currentDateandTime));
+
+                                            History history = new History(s_curr, currentDateandTime, "");
+                                            map_hist.put("/to", currentDateandTime);
+                                            FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).child(student.getCurrent()).updateChildren(map_hist);
+                                            FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).child(s_curr).setValue(history);
                                             stud_ref.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
                                                 public void onSuccess(Void unused) {

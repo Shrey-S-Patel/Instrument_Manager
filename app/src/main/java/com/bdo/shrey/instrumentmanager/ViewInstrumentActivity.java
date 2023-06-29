@@ -286,7 +286,6 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                             numberOfChildren = 0;
                         }
 
-                        assert instrument != null;
                         if (instrument.getId() == null || instrument.getCategory() == null) {
                             Toast.makeText(getApplicationContext(), "Instrument Not Found", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(getApplicationContext(), AllInstrumentsActivity.class);

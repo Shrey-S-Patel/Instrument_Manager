@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
 import com.bdo.shrey.instrumentmanager.Models.Category;
+import com.bdo.shrey.instrumentmanager.Models.History;
 import com.bdo.shrey.instrumentmanager.Models.Student;
 import com.bdo.shrey.instrumentmanager.Models.StudentLocation;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -27,7 +28,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class CreateStudentActivity extends AppCompatActivity {
 
@@ -193,11 +197,15 @@ public class CreateStudentActivity extends AppCompatActivity {
                 if (s_name.isEmpty() || s_curr.isEmpty()) {
                     name.setError("Enter name!");
                 } else {
-                    Student student = new Student(s_code, s_name, s_location, "",s_status, s_curr);
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+                    String currentDateandTime = sdf.format(new Date());
+                    Student student = new Student(s_code, s_name, s_location, "",s_status, s_curr, currentDateandTime);
+                    History history = new History(s_curr, currentDateandTime, "");
                     root.child(s_code).setValue(student).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
                             FirebaseDatabase.getInstance().getReference("Students1").child(s_location).child(s_code).setValue(student);
+                            FirebaseDatabase.getInstance().getReference("S_History").child(s_code).child(s_curr).setValue(history);
                             StudentLocation s_loc = new StudentLocation(sl_location, count, code_count);
                             loc_ref.child(sl_location).setValue(s_loc).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override

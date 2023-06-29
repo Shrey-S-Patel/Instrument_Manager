@@ -22,6 +22,7 @@ import com.bdo.shrey.instrumentmanager.AllStudentsActivity;
 import com.bdo.shrey.instrumentmanager.Models.Instrument;
 import com.bdo.shrey.instrumentmanager.Models.SDeletes;
 import com.bdo.shrey.instrumentmanager.Models.Student;
+import com.bdo.shrey.instrumentmanager.Models.StudentLocation;
 import com.bdo.shrey.instrumentmanager.Models.User;
 import com.bdo.shrey.instrumentmanager.R;
 import com.bdo.shrey.instrumentmanager.ViewInstrumentActivity;
@@ -38,6 +39,8 @@ import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.ViewHolder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentViewHolder> {
 
@@ -45,6 +48,7 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
     Context context;
     ArrayList<Student> student_list;
     String u_name,password;
+    int loc_count;
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     String userID = mAuth.getCurrentUser().getUid();
     private final DatabaseReference database_ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
@@ -195,6 +199,23 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
                                 Toast.makeText(context.getApplicationContext(), "Invalid Password!", Toast.LENGTH_SHORT).show();
                             } else {
                                 SDeletes deleted_s = new SDeletes(student.getId(), student.getName(), student.getLocation(), student.getAssigned(), u_name);
+                                FirebaseDatabase.getInstance().getReference().child("s_location").child(student.getLocation()).addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        StudentLocation loc = snapshot.getValue(StudentLocation.class);
+
+                                        if (snapshot.exists()) {
+                                            assert loc != null;
+                                            loc_count = loc.getCount();
+                                            loc_count = loc_count - 1;
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+                                        Toast.makeText(context, "Location Count was cancelled!", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                                 delete_ref.child("Students").child(student.getId()).removeValue();
                                 delete_ref.child("Students1").child(student.getLocation()).child(student.getId()).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
@@ -202,6 +223,9 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
                                         FirebaseDatabase.getInstance().getReference().child("Deleted_S").child(student.getId()).setValue(deleted_s).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void unused) {
+                                                Map<String, Object> count = new HashMap<>();
+                                                count.put("/count", loc_count);
+                                                FirebaseDatabase.getInstance().getReference().child("s_location").child(student.getLocation()).updateChildren(count);
                                                 Toast.makeText(context.getApplicationContext(), "Deleted Successfully!", Toast.LENGTH_SHORT).show();
                                                 Intent intent = new Intent(context.getApplicationContext(), AllStudentsActivity.class);
                                                 intent.putExtra("location", "");
