@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.InstrumentManager" parent="Theme.Material3.Dark.NoActionBar">
 <!--        &lt;!&ndash; Primary brand color. &ndash;&gt;-->
-        <item name="colorPrimary">@color/purple_700</item>
+        <item name="colorPrimary">@color/white</item>
 <!--        <item name="colorPrimaryVariant">@color/purple_700</item>-->
 <!--        <item name="colorOnPrimary">@color/white</item>-->
 <!--        &lt;!&ndash; Secondary brand color. &ndash;&gt;-->

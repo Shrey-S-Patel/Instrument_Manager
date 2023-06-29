@@ -6,9 +6,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +22,7 @@ import androidx.appcompat.widget.SearchView;
 
 import com.bdo.shrey.instrumentmanager.Models.Assign;
 import com.bdo.shrey.instrumentmanager.Models.Category;
+import com.bdo.shrey.instrumentmanager.Models.Instrument;
 import com.bdo.shrey.instrumentmanager.Models.SDeletes;
 import com.bdo.shrey.instrumentmanager.Models.Student;
 import com.bdo.shrey.instrumentmanager.Models.StudentLocation;
@@ -33,8 +38,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.ViewHolder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class ViewStudentActivity extends AppCompatActivity {
     TextView title;
@@ -54,6 +61,12 @@ public class ViewStudentActivity extends AppCompatActivity {
     private final DatabaseReference user_ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
     private String u_name;
     private int loc_count;
+    private ArrayList<String> loc_spinner_list, stat_spinner_list, current_spinner_list;
+    private ArrayAdapter<String> loc_spinner_adapter, stat_spinner_adapter, current_spinner_adapter;
+    private DatabaseReference cat_ref = FirebaseDatabase.getInstance().getReference("Categories");
+    private DatabaseReference stud_ref = FirebaseDatabase.getInstance().getReference("Students");
+    private DatabaseReference basic_ref = FirebaseDatabase.getInstance().getReference();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -282,7 +295,164 @@ public class ViewStudentActivity extends AppCompatActivity {
                             }
                         });
 
+                        assign_btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent intent = new Intent(getApplicationContext(), AllInstrumentsActivity.class);
+                                intent.putExtra("category", student.getCurrent());
+                                finish();
+                                startActivity(intent);
+                            }
+                        });
 
+                        receive_btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent intent = new Intent(getApplicationContext(), ScanActivity.class);
+                                finish();
+                                startActivity(intent);
+                            }
+                        });
+
+                        edit_btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                DialogPlus dialogPlus = DialogPlus.newDialog(ViewStudentActivity.this)
+                                        .setGravity(Gravity.CENTER)
+                                        .setMargin(50, 50, 50, 50)
+                                        .setContentHolder(new ViewHolder(R.layout.student_edit_dialog))
+                                        .setContentBackgroundResource(com.google.android.material.R.color.cardview_dark_background)
+                                        .setExpanded(false).create();
+
+                                View holderView = dialogPlus.getHolderView();
+                                ImageView image = holderView.findViewById(R.id.iv_bc);
+                                TextView title = holderView.findViewById(R.id.title);
+                                SearchView action_search = holderView.findViewById(R.id.search);
+                                ImageView scanQR = holderView.findViewById(R.id.scanQR);
+                                ImageView back = holderView.findViewById(R.id.back);
+
+                                EditText name = holderView.findViewById(R.id.s_name);
+                                TextView id = holderView.findViewById(R.id.s_id);
+                                Spinner location = holderView.findViewById(R.id.s_location);
+                                Spinner status = holderView.findViewById(R.id.s_status);
+                                Spinner current = holderView.findViewById(R.id.s_current);
+                                Button save = holderView.findViewById(R.id.btn_upload);
+
+                                title.setText("Edit Student");
+                                action_search.setVisibility(View.INVISIBLE);
+                                scanQR.setVisibility(View.INVISIBLE);
+
+                                name.setText(student.getName());
+                                id.setText(student.getId());
+
+                                loc_spinner_list = new ArrayList<>();
+                                loc_spinner_list.add("Korogocho");
+                                loc_spinner_list.add("Mukuru Reuben");
+                                loc_spinner_list.add("Main Office");
+                                loc_spinner_list.add("Mombasa");
+
+                                loc_spinner_adapter = new ArrayAdapter<String>(ViewStudentActivity.this, android.R.layout.simple_spinner_dropdown_item, loc_spinner_list);
+                                location.setAdapter(loc_spinner_adapter);
+                                location.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                        s_loc = loc_spinner_list.get(i);
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                    }
+                                });
+
+                                stat_spinner_list = new ArrayList<>();
+                                stat_spinner_list.add("Active");
+                                stat_spinner_list.add("Inactive");
+
+                                stat_spinner_adapter = new ArrayAdapter<String>(ViewStudentActivity.this, android.R.layout.simple_spinner_dropdown_item, stat_spinner_list);
+                                status.setAdapter(stat_spinner_adapter);
+                                status.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                        s_stat = stat_spinner_list.get(i);
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                    }
+                                });
+
+                                current_spinner_list = new ArrayList<>();
+                                current_spinner_adapter = new ArrayAdapter<String>(ViewStudentActivity.this, android.R.layout.simple_spinner_dropdown_item, current_spinner_list);
+                                current.setAdapter(current_spinner_adapter);
+                                cat_ref.addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        for (DataSnapshot dataSnapshot: snapshot.getChildren()){
+                                            Category cat = dataSnapshot.getValue(Category.class);
+                                            current_spinner_list.add(cat.getCat_name());
+                                        }
+                                        current_spinner_adapter.notifyDataSetChanged();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+                                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                                current.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                        s_curr = current_spinner_list.get(i);
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                    }
+                                });
+
+                                back.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        dialogPlus.dismiss();
+                                    }
+                                });
+
+                                save.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        Map<String, Object> map = new HashMap<>();
+                                        if (!Objects.equals(student.getName(), name.getText()) || !Objects.equals(student.getLocation(), s_loc) || !Objects.equals(student.getStatus(), s_stat) || !Objects.equals(student.getCurrent(), s_curr)){
+                                            map.put(student.getId(), new Student(student.getId(), name.getText().toString(), s_loc, student.getAssigned(), s_stat, s_curr));
+                                            stud_ref.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void unused) {
+                                                    basic_ref.child("Students1").child(student.getLocation()).updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(Void unused) {
+                                                            Toast.makeText(getApplicationContext(), "Changes Saved!", Toast.LENGTH_SHORT).show();
+                                                            dialogPlus.dismiss();
+                                                        }
+                                                    });
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Toast.makeText(getApplicationContext(), "Changes Not Saved!", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        }else {
+                                            Toast.makeText(getApplicationContext(), "No changes noticed!", Toast.LENGTH_SHORT).show();
+                                            dialogPlus.dismiss();
+                                            Toast.makeText(getApplicationContext(), "Exiting!", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+                                dialogPlus.show();
+                            }
+                        });
 
                     } else {
                         Toast.makeText(getApplicationContext(), "Student does not exist!", Toast.LENGTH_SHORT).show();

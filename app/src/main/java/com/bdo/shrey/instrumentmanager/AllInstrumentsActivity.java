@@ -128,6 +128,7 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                instrument_list.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
 
                     Instrument instrument = dataSnapshot.getValue(Instrument.class);

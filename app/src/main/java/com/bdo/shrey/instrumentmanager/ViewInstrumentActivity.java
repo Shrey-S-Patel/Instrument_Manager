@@ -242,19 +242,19 @@ public class ViewInstrumentActivity extends AppCompatActivity {
         }
     }
 
-    private void ShowData() {
+    private void ShowData(String i_location) {
         spinner_ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot item : snapshot.getChildren()) {
                     Student student = item.getValue(Student.class);
-                    if (!Objects.equals(student.getAssigned(), "")) {
+                    if ((!Objects.equals(student.getAssigned(), "")) || (!Objects.equals(student.getLocation(), i_location)) || (!Objects.equals(student.getStatus(),"Active"))) {
                         s_name = student.getName() + ", " + student.getId() + " Has the " + student.getAssigned();
                     }else {
                         s_name = String.valueOf(student.getName()) + ", " + String.valueOf(student.getId());
+                        student_list.add(s_name);
+                        students_details_list.add(student);
                     }
-                    student_list.add(s_name);
-                    students_details_list.add(student);
                 }
                 stud_spinner_adapter.notifyDataSetChanged();
             }
@@ -453,7 +453,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                     student_list = new ArrayList<>();
                                     students_details_list = new ArrayList<>();
                                     stud_spinner_adapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.list_white_text, R.id.list_content, student_list);
-                                    ShowData();
+                                    ShowData(instrument.getLocation());
 
                                     student.setOnClickListener(new View.OnClickListener() {
                                         @Override
@@ -493,17 +493,22 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                                     // set selected item on textView
                                                     stud_select = String.valueOf(stud_spinner_adapter.getItem(position));
                                                     Student s1 = students_details_list.get(position);
-                                                    if (s1.getAssigned().equals("")) {
-                                                        stud_id = s1.getId();
-                                                        stud_loc = s1.getLocation();
-                                                        String student_text = stud_spinner_adapter.getItem(position) + " - " + stud_id;
-                                                        student.setText(student_text);
-                                                        // Dismiss dialog
+                                                    if (s1.getLocation().equals(instrument.getLocation())){
+                                                        if (s1.getAssigned().equals("")) {
+                                                            stud_id = s1.getId();
+                                                            stud_loc = s1.getLocation();
+                                                            String student_text = stud_spinner_adapter.getItem(position) + " - " + stud_id;
+                                                            student.setText(student_text);
+                                                            // Dismiss dialog
+                                                            dialog.dismiss();
+                                                        } else {
+                                                            dialog.dismiss();
+                                                            student.setError("Student has an instrument");
+                                                            Toast.makeText(ViewInstrumentActivity.this, "Student has an instrument!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }else {
                                                         dialog.dismiss();
-                                                    } else {
-                                                        dialog.dismiss();
-                                                        student.setError("Student has an instrument");
-                                                        Toast.makeText(ViewInstrumentActivity.this, "Student has an instrument!", Toast.LENGTH_SHORT).show();
+                                                        Toast.makeText(ViewInstrumentActivity.this, "Location must be the same!", Toast.LENGTH_SHORT).show();
                                                     }
                                                 }
                                             });
@@ -647,7 +652,12 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                             edit_btn.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    DialogPlus dialogPlus = DialogPlus.newDialog(ViewInstrumentActivity.this).setGravity(Gravity.CENTER).setMargin(50, 50, 50, 50).setContentHolder(new ViewHolder(R.layout.instrument_edit_dialog)).setContentBackgroundResource(com.google.android.material.R.color.cardview_dark_background).setExpanded(false).create();
+                                    DialogPlus dialogPlus = DialogPlus.newDialog(ViewInstrumentActivity.this)
+                                            .setGravity(Gravity.CENTER)
+                                            .setMargin(50, 50, 50, 50)
+                                            .setContentHolder(new ViewHolder(R.layout.instrument_edit_dialog))
+                                            .setContentBackgroundResource(com.google.android.material.R.color.cardview_dark_background)
+                                            .setExpanded(false).create();
 
                                     View holderView = dialogPlus.getHolderView();
                                     ImageView image = holderView.findViewById(R.id.iv_bc);
@@ -729,8 +739,13 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                                 reference.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void unused) {
-                                                        Toast.makeText(ViewInstrumentActivity.this, "Changes Saved!", Toast.LENGTH_SHORT).show();
-                                                        dialogPlus.dismiss();
+                                                        reference1.child(instrument.getCategory()).updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void unused) {
+                                                                Toast.makeText(ViewInstrumentActivity.this, "Changes Saved!", Toast.LENGTH_SHORT).show();
+                                                                dialogPlus.dismiss();
+                                                            }
+                                                        });
                                                     }
                                                 }).addOnFailureListener(new OnFailureListener() {
                                                     @Override

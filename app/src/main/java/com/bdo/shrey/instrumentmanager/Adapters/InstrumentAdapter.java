@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class InstrumentAdapter extends RecyclerView.Adapter<InstrumentAdapter.InstrumentViewHolder> {
 
@@ -61,7 +62,7 @@ public class InstrumentAdapter extends RecyclerView.Adapter<InstrumentAdapter.In
         }
 
 
-        if (instrument.getAssigned() != null) {
+        if (!Objects.equals(instrument.getAssigned(), "")) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 holder.stat.getBackground().setTint(Color.RED);
             }
@@ -72,6 +73,9 @@ public class InstrumentAdapter extends RecyclerView.Adapter<InstrumentAdapter.In
                 }
             });
         } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                holder.stat.getBackground().setTint(Color.GREEN);
+            }
             holder.stat.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

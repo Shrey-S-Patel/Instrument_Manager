@@ -130,6 +130,7 @@ public class AllStudentsActivity extends AppCompatActivity implements View.OnCli
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                students_list.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
 
                     Student student = dataSnapshot.getValue(Student.class);
