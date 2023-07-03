@@ -82,6 +82,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="25dp"
                 android:textSize="17sp"
+                android:textColor="@color/blue2"
                 android:layout_marginTop="10dp"
                 android:text="Assigned Status"/>
 

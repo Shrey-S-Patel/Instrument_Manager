@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,10 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
-import com.bdo.shrey.instrumentmanager.Models.Assign;
 import com.bdo.shrey.instrumentmanager.Models.Category;
 import com.bdo.shrey.instrumentmanager.Models.History;
-import com.bdo.shrey.instrumentmanager.Models.Instrument;
 import com.bdo.shrey.instrumentmanager.Models.SDeletes;
 import com.bdo.shrey.instrumentmanager.Models.Student;
 import com.bdo.shrey.instrumentmanager.Models.StudentLocation;
@@ -39,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.ViewHolder;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,27 +46,28 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class ViewStudentActivity extends AppCompatActivity {
     TextView title;
     SearchView action_search;
     ImageView back, scanQR;
 
-    TextView name, code, location, status, current, assigned, history;
+    TextView name, code, location, status, current, assigned;
+    ListView history;
     Button assign_btn, receive_btn, edit_btn, delete_btn;
     ImageButton generate_btn;
-
+    String s_name, s_id, s_loc, s_stat, s_curr, s_assigned, s_hist;
     private DatabaseReference myRef;
     private FirebaseDatabase database;
-
-    String s_name, s_id, s_loc, s_stat, s_curr, s_assigned, s_hist;
     private String password;
-    private String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private final String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
     private final DatabaseReference user_ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
     private String u_name;
     private int loc_count;
+    private ArrayList<String>  history_list;
     private ArrayList<String> loc_spinner_list, stat_spinner_list, current_spinner_list;
-    private ArrayAdapter<String> loc_spinner_adapter, stat_spinner_adapter, current_spinner_adapter;
+    private ArrayAdapter<String> loc_spinner_adapter, stat_spinner_adapter, current_spinner_adapter, hist_adapter;
     private DatabaseReference cat_ref = FirebaseDatabase.getInstance().getReference("Categories");
     private DatabaseReference stud_ref = FirebaseDatabase.getInstance().getReference("Students");
     private DatabaseReference basic_ref = FirebaseDatabase.getInstance().getReference();
@@ -144,22 +145,62 @@ public class ViewStudentActivity extends AppCompatActivity {
                         location.setText(student.getLocation());
                         status.setText(student.getStatus());
                         current.setText("Currently Learning: " + student.getCurrent());
-                        history.setText("Nothing yet");
+//                        history.setText("Nothing yet");
+                        history_list = new ArrayList<>();
+                        hist_adapter = new ArrayAdapter<String>(ViewStudentActivity.this, android.R.layout.simple_list_item_1,history_list );
+                        history.setAdapter(hist_adapter);
+                        FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    History history = dataSnapshot.getValue(History.class);
+                                    long daysBetween = 0;
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy", Locale.ENGLISH);
+                                        String from = history.getFrom();
+                                        String to;
+                                        if (history.getTo().equals("")){
+                                            Date dateTo = new Date();
+                                            to  = formatter.format(dateTo);
+                                        }else {
+                                            to = history.getTo();
+                                        }
+                                        try {
+                                            Date date = formatter.parse(from);
+                                            Date date2 = formatter.parse(to);
+                                            long timeDiff = Math.abs(date.getTime() - date2.getTime());
+                                            long daysDiff = TimeUnit.DAYS.convert(timeDiff, TimeUnit.MILLISECONDS);
+
+                                            String hist_entry = history.getI_cat() + ": " + daysDiff + " days.";
+                                            history_list.add(hist_entry);
+                                            hist_adapter.notifyDataSetChanged();
+                                        } catch (ParseException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
 
 
                         if (!(student.getAssigned().equals(""))) {
                             s_assigned = student.getAssigned();
-                            Toast.makeText(getApplicationContext(), "Return " + s_assigned +  " before assigning!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Return " + s_assigned + " before assigning!", Toast.LENGTH_SHORT).show();
                             assigned.setText("Assigned: " + s_assigned);
                             assign_btn.setEnabled(false);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                assign_btn.getBackground().setTint(Color.RED);
+                                assign_btn.getBackground().setTint(Color.GRAY);
                             }
-                        }else {
+                        } else {
                             assigned.setText("Ready to assign!");
                             receive_btn.setEnabled(false);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                receive_btn.getBackground().setTint(Color.RED);
+                                receive_btn.getBackground().setTint(Color.GRAY);
                             }
                         }
 
@@ -248,7 +289,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                             database.getReference().child("s_location").child(student.getLocation()).addValueEventListener(new ValueEventListener() {
                                                 @Override
                                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                     StudentLocation loc = snapshot.getValue(StudentLocation.class);
+                                                    StudentLocation loc = snapshot.getValue(StudentLocation.class);
 
                                                     if (snapshot.exists()) {
                                                         assert loc != null;
@@ -394,7 +435,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                 cat_ref.addValueEventListener(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        for (DataSnapshot dataSnapshot: snapshot.getChildren()){
+                                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                             Category cat = dataSnapshot.getValue(Category.class);
                                             current_spinner_list.add(cat.getCat_name());
                                         }
@@ -430,7 +471,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                     public void onClick(View view) {
                                         Map<String, Object> map = new HashMap<>();
                                         Map<String, Object> map_hist = new HashMap<>();
-                                        if (!Objects.equals(student.getName(), name.getText()) || !Objects.equals(student.getLocation(), s_loc) || !Objects.equals(student.getStatus(), s_stat) || !Objects.equals(student.getCurrent(), s_curr)){
+                                        if (!Objects.equals(student.getName(), name.getText()) || !Objects.equals(student.getLocation(), s_loc) || !Objects.equals(student.getStatus(), s_stat) || !Objects.equals(student.getCurrent(), s_curr)) {
                                             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
                                             String currentDateandTime = sdf.format(new Date());
                                             map.put(student.getId(), new Student(student.getId(), name.getText().toString(), s_loc, student.getAssigned(), s_stat, s_curr, currentDateandTime));
@@ -456,7 +497,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                                     Toast.makeText(getApplicationContext(), "Changes Not Saved!", Toast.LENGTH_SHORT).show();
                                                 }
                                             });
-                                        }else {
+                                        } else {
                                             Toast.makeText(getApplicationContext(), "No changes noticed!", Toast.LENGTH_SHORT).show();
                                             dialogPlus.dismiss();
                                             Toast.makeText(getApplicationContext(), "Exiting!", Toast.LENGTH_SHORT).show();

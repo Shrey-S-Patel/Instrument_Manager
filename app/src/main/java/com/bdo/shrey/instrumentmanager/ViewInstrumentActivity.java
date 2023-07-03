@@ -222,13 +222,13 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                             assign_txt.setText("Assigned to " + s_name);
                             assign_btn.setEnabled(false);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                assign_btn.getBackground().setTint(Color.RED);
+                                assign_btn.getBackground().setTint(Color.GRAY);
                             }
                         } else {
                             assign_txt.setText("");
                             receive_btn.setEnabled(false);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                receive_btn.getBackground().setTint(Color.RED);
+                                receive_btn.getBackground().setTint(Color.GRAY);
                             }
                         }
                     }
@@ -296,6 +296,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                             cat.setText(instrument.getCategory());
                             location.setText(instrument.getLocation());
                             status.setText(String.format("Status: %s", instrument.getStatus()));
+                            notes.setText(instrument.getNotes());
 
                             String imageUrl = null;
                             imageUrl = instrument.getImg();
@@ -688,7 +689,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                     loc_spinner_list.add("Main Office");
                                     loc_spinner_list.add("Mombasa");
 
-                                    loc_spinner_adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, loc_spinner_list);
+                                    loc_spinner_adapter = new ArrayAdapter<String>(ViewInstrumentActivity.this, android.R.layout.simple_spinner_dropdown_item, loc_spinner_list);
                                     location.setAdapter(loc_spinner_adapter);
                                     location.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                         @Override
@@ -707,7 +708,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                     stat_spinner_list.add("Inactive");
                                     stat_spinner_list.add("Transit");
 
-                                    stat_spinner_adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, stat_spinner_list);
+                                    stat_spinner_adapter = new ArrayAdapter<String>(ViewInstrumentActivity.this, android.R.layout.simple_spinner_dropdown_item, stat_spinner_list);
                                     status.setAdapter(stat_spinner_adapter);
                                     status.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                         @Override
@@ -733,7 +734,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
                                         public void onClick(View view) {
 
                                             Map<String, Object> map = new HashMap<>();
-                                            if (!Objects.equals(i_location, instrument.getLocation()) || !Objects.equals(i_status, instrument.getStatus())) {
+                                            if (!Objects.equals(i_location, instrument.getLocation()) || !Objects.equals(i_status, instrument.getStatus()) || !Objects.equals(notes.getText(), instrument.getNotes())) {
                                                 map.put(instrument.getId(), new Instrument(instrument.getId(), instrument.getCategory(), i_location, i_status, instrument.getImg(), notes.getText().toString(), s_name));
                                                 reference.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
