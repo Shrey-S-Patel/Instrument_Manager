@@ -14,10 +14,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextPaint;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -67,30 +65,30 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class ViewStudentActivity extends AppCompatActivity {
+    private final String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private final DatabaseReference user_ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
     TextView title;
     SearchView action_search;
     ImageView back, scanQR;
-
     TextView name, code, location, status, current, assigned;
     ListView history;
     Button assign_btn, receive_btn, edit_btn, delete_btn;
     ImageButton generate_btn;
     String s_name, s_id, s_loc, s_stat, s_curr, s_assigned, s_hist;
+    Bitmap bmp, scaledBmp;
+    int page_width = 1200;
     private DatabaseReference myRef;
     private FirebaseDatabase database;
     private String password;
-    private final String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-    private final DatabaseReference user_ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
     private String u_name;
     private int loc_count;
-    private ArrayList<String>  history_list;
+    private ArrayList<String> history_list;
     private ArrayList<String> loc_spinner_list, stat_spinner_list, current_spinner_list;
     private ArrayAdapter<String> loc_spinner_adapter, stat_spinner_adapter, current_spinner_adapter, hist_adapter;
     private DatabaseReference cat_ref = FirebaseDatabase.getInstance().getReference("Categories");
     private DatabaseReference stud_ref = FirebaseDatabase.getInstance().getReference("Students");
     private DatabaseReference basic_ref = FirebaseDatabase.getInstance().getReference();
-    Bitmap bmp, scaledBmp;
-    int page_width = 1200;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,7 +131,7 @@ public class ViewStudentActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 bmp = BitmapFactory.decodeResource(getResources(), R.drawable.ghetto);
-                scaledBmp = Bitmap.createScaledBitmap(bmp, 490, 226, false );
+                scaledBmp = Bitmap.createScaledBitmap(bmp, 490, 226, false);
                 createPDF();
             }
         });
@@ -174,7 +172,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                         current.setText("Currently Learning: " + student.getCurrent());
 //                        history.setText("Nothing yet");
                         history_list = new ArrayList<>();
-                        hist_adapter = new ArrayAdapter<String>(ViewStudentActivity.this, android.R.layout.simple_list_item_1,history_list );
+                        hist_adapter = new ArrayAdapter<String>(ViewStudentActivity.this, android.R.layout.simple_list_item_1, history_list);
                         history.setAdapter(hist_adapter);
                         FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).addValueEventListener(new ValueEventListener() {
                             @Override
@@ -186,10 +184,10 @@ public class ViewStudentActivity extends AppCompatActivity {
                                         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy", Locale.ENGLISH);
                                         String from = history.getFrom();
                                         String to;
-                                        if (history.getTo().equals("")){
+                                        if (history.getTo().equals("")) {
                                             Date dateTo = new Date();
-                                            to  = formatter.format(dateTo);
-                                        }else {
+                                            to = formatter.format(dateTo);
+                                        } else {
                                             to = history.getTo();
                                         }
                                         try {
@@ -419,6 +417,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                 id.setText(student.getId());
 
                                 loc_spinner_list = new ArrayList<>();
+                                loc_spinner_list.add("None");
                                 loc_spinner_list.add("Korogocho");
                                 loc_spinner_list.add("Mukuru Reuben");
                                 loc_spinner_list.add("Main Office");
@@ -439,6 +438,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                 });
 
                                 stat_spinner_list = new ArrayList<>();
+                                stat_spinner_list.add("None");
                                 stat_spinner_list.add("Active");
                                 stat_spinner_list.add("Inactive");
 
@@ -457,6 +457,7 @@ public class ViewStudentActivity extends AppCompatActivity {
                                 });
 
                                 current_spinner_list = new ArrayList<>();
+                                current_spinner_list.add("None");
                                 current_spinner_adapter = new ArrayAdapter<String>(ViewStudentActivity.this, android.R.layout.simple_spinner_dropdown_item, current_spinner_list);
                                 current.setAdapter(current_spinner_adapter);
                                 cat_ref.addValueEventListener(new ValueEventListener() {
@@ -498,32 +499,47 @@ public class ViewStudentActivity extends AppCompatActivity {
                                     public void onClick(View view) {
                                         Map<String, Object> map = new HashMap<>();
                                         Map<String, Object> map_hist = new HashMap<>();
-                                        if (!Objects.equals(student.getName(), name.getText()) || !Objects.equals(student.getLocation(), s_loc) || !Objects.equals(student.getStatus(), s_stat) || !Objects.equals(student.getCurrent(), s_curr)) {
-                                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
-                                            String currentDateandTime = sdf.format(new Date());
-                                            map.put(student.getId(), new Student(student.getId(), name.getText().toString(), s_loc, student.getAssigned(), s_stat, s_curr, currentDateandTime));
+                                        if (!Objects.equals("None", s_loc)
+                                                || !Objects.equals("None", s_stat)
+                                                || !Objects.equals("None", s_curr)) {
+                                            if (!Objects.equals(student.getName(), name.getText().toString())
+                                                    || !Objects.equals(student.getLocation(), s_loc)
+                                                    || !Objects.equals(student.getStatus(), s_stat)
+                                                    || !Objects.equals(student.getCurrent(), s_curr)) {
+                                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+                                                String currentDateandTime = sdf.format(new Date());
 
-                                            History history = new History(s_curr, currentDateandTime, "");
-                                            map_hist.put("/to", currentDateandTime);
-                                            FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).child(student.getCurrent()).updateChildren(map_hist);
-                                            FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).child(s_curr).setValue(history);
-                                            stud_ref.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void unused) {
-                                                    basic_ref.child("Students1").child(student.getLocation()).updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                if (!Objects.equals(student.getCurrent(), s_curr)) {
+                                                    History history = new History(s_curr, currentDateandTime, "");
+                                                    map_hist.put("/to", currentDateandTime);
+                                                    FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).child(student.getCurrent()).updateChildren(map_hist);
+                                                    FirebaseDatabase.getInstance().getReference("S_History").child(student.getId()).child(s_curr).setValue(history);
+                                                    map.put(student.getId(), new Student(student.getId(), name.getText().toString(), s_loc, student.getAssigned(), s_stat, s_curr, currentDateandTime));
+                                                } else {
+                                                    map.put(student.getId(), new Student(student.getId(), name.getText().toString(), s_loc, student.getAssigned(), s_stat, s_curr, student.getStart_date()));
+                                                    stud_ref.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                         @Override
                                                         public void onSuccess(Void unused) {
-                                                            Toast.makeText(getApplicationContext(), "Changes Saved!", Toast.LENGTH_SHORT).show();
-                                                            dialogPlus.dismiss();
+                                                            basic_ref.child("Students1").child(student.getLocation()).updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(Void unused) {
+                                                                    Toast.makeText(getApplicationContext(), "Changes Saved!", Toast.LENGTH_SHORT).show();
+                                                                    dialogPlus.dismiss();
+                                                                }
+                                                            });
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Toast.makeText(getApplicationContext(), "Changes Not Saved!", Toast.LENGTH_SHORT).show();
                                                         }
                                                     });
                                                 }
-                                            }).addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    Toast.makeText(getApplicationContext(), "Changes Not Saved!", Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
+                                            } else {
+                                                Toast.makeText(getApplicationContext(), "No changes noticed!", Toast.LENGTH_SHORT).show();
+                                                dialogPlus.dismiss();
+                                                Toast.makeText(getApplicationContext(), "Exiting!", Toast.LENGTH_SHORT).show();
+                                            }
                                         } else {
                                             Toast.makeText(getApplicationContext(), "No changes noticed!", Toast.LENGTH_SHORT).show();
                                             dialogPlus.dismiss();
@@ -564,9 +580,8 @@ public class ViewStudentActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 return false;
             }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
-            Log.v(TAG,"Permission is granted");
+        } else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG, "Permission is granted");
             return true;
         }
     }
@@ -581,16 +596,16 @@ public class ViewStudentActivity extends AppCompatActivity {
         //To draw to the page we need a Canvas
         Canvas canvas = page.getCanvas();
         int centreX;
-        centreX = (1200  - scaledBmp.getScaledWidth(canvas)) /2;
+        centreX = (1200 - scaledBmp.getScaledWidth(canvas)) / 2;
         canvas.drawBitmap(scaledBmp, centreX, 50, paint);
         title.setTextAlign(Paint.Align.CENTER);
         title.setTypeface(Typeface.create("Arial", Typeface.BOLD));
         title.setTextSize(60);
-        canvas.drawText("STUDENT REPORT", page_width/2, 360, title);
+        canvas.drawText("STUDENT REPORT", page_width / 2, 360, title);
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
-        canvas.drawLine(320, 370, page_width-320, 370, paint);
+        canvas.drawLine(320, 370, page_width - 320, 370, paint);
 
         paint.setStyle(Paint.Style.FILL);
         paint.setTypeface(Typeface.DEFAULT);
@@ -603,7 +618,7 @@ public class ViewStudentActivity extends AppCompatActivity {
         canvas.drawText("Student Assigned: " + assigned.getText(), 50, 670, paint);
 
         paint.setTextAlign(Paint.Align.RIGHT);
-        canvas.drawText("Student Status: " + status.getText(), page_width-50, 490, paint);
+        canvas.drawText("Student Status: " + status.getText(), page_width - 50, 490, paint);
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
@@ -621,30 +636,30 @@ public class ViewStudentActivity extends AppCompatActivity {
         paint.setColor(Color.BLACK);
 
         int table_height = 910;
-        for (int i = 0; i<history_list.size(); i++){
+        for (int i = 0; i < history_list.size(); i++) {
             canvas.drawText(history_list.get(i), 120, table_height, paint);
-            table_height = table_height+55;
+            table_height = table_height + 55;
         }
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
-        canvas.drawLine(50, 1900, page_width-50, 1900, paint);
+        canvas.drawLine(50, 1900, page_width - 50, 1900, paint);
 
         paint.setStyle(Paint.Style.FILL);
         paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD_ITALIC));
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setTextSize(30f);
         paint.setColor(Color.BLUE);
-        canvas.drawText("Reporting done by A BDO System.", page_width/2, 1950, paint);
+        canvas.drawText("Powered by BDO EA.", page_width / 2, 1950, paint);
 
         //Finish the page to close the writing phase
         document.finishPage(page);
 
         //Writing this File to custom folder for AOM PDFs
-        if (isStoragePermissionGranted()){
+        if (isStoragePermissionGranted()) {
             String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
             File aom_dir = new File(root, "/AoM Docs");
-            if (!aom_dir.exists()){
+            if (!aom_dir.exists()) {
                 aom_dir.mkdir();
             }
             String pdf_name = s_id + "_Report.pdf";
@@ -655,13 +670,11 @@ public class ViewStudentActivity extends AppCompatActivity {
                 document.writeTo(fos);
                 document.close();
                 fos.close();
-                Toast.makeText(this, "Created " + pdf_name+ " Successfully!", Toast.LENGTH_SHORT).show();
-            }
-            catch (FileNotFoundException e){
-                Log.d("WriteLog", "Error while writing: "+ e.toString());
+                Toast.makeText(this, "Created " + pdf_name + " Successfully!", Toast.LENGTH_SHORT).show();
+            } catch (FileNotFoundException e) {
+                Log.d("WriteLog", "Error while writing: " + e.toString());
                 throw new RuntimeException(e);
-            }
-            catch (IOException e){
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }

@@ -22,7 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 public class MainActivity extends AppCompatActivity {
 
     ImageView menu;
-    CardView instruments, students, add, scan, account, logout;
+    CardView instruments, students, add, scan, account, reports, logout;
     TextView user_name;
     DatabaseReference database_ref;
     String name_txt;
@@ -142,6 +142,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Toast.makeText(MainActivity.this, "Account", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(getApplicationContext(), AccountActivity.class));
+            }
+        });
+
+        reports = findViewById(R.id.reports);
+        reports.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, "Reports", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), ReportsActivity.class));
             }
         });
 
