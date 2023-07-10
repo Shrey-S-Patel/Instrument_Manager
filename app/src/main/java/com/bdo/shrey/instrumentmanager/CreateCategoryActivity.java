@@ -115,7 +115,7 @@ public class CreateCategoryActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(CreateCategoryActivity.this, "Creating Category", Toast.LENGTH_SHORT).show();
                             if (!(name.isEmpty() || code.isEmpty())) {
-                                Category category = new Category(name, code, 0, 0);
+                                Category category = new Category(name, code, 0, 0,0,0,0);
                                 cat_ref.child(name).setValue(category).addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {

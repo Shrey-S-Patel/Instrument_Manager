@@ -94,6 +94,7 @@ public class ViewInstrumentActivity extends AppCompatActivity {
     private ArrayList<String> loc_spinner_list, stat_spinner_list;
     private ArrayList<Student> students_details_list;
     private ArrayAdapter<String> loc_spinner_adapter, stat_spinner_adapter;
+    int active, inactive, transit;
 
     @Override
     public void onBackPressed() {
@@ -735,6 +736,47 @@ public class ViewInstrumentActivity extends AppCompatActivity {
 
                                             Map<String, Object> map = new HashMap<>();
                                             if (!Objects.equals(i_location, instrument.getLocation()) || !Objects.equals(i_status, instrument.getStatus()) || !Objects.equals(notes.getText(), instrument.getNotes())) {
+                                                if (!i_status.equals(instrument.getStatus())){
+                                                    cat_ref.child(instrument.getCategory()).addValueEventListener(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                            Category cat = snapshot.getValue(Category.class);
+
+                                                            if (snapshot.exists()) {
+                                                                active = cat.getActive();
+                                                                inactive = cat.getInactive();
+                                                                transit = cat.getTransit();
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(@NonNull DatabaseError error) {
+                                                            Toast.makeText(ViewInstrumentActivity.this, "Cat Count was cancelled!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+
+                                                    if (instrument.getStatus().equals("Active")){
+                                                        active = active-1;
+                                                    }else if (instrument.getStatus().equals("Inactive")){
+                                                        inactive = inactive-1;
+                                                    }else if (instrument.getStatus().equals("Transit")){
+                                                        transit = transit-1;
+                                                    }
+
+                                                    if (i_status.equals("Active")){
+                                                        active = active+1;
+                                                    }else if (i_status.equals("Inactive")){
+                                                        inactive = inactive+1;
+                                                    }else if (i_status.equals("Transit")){
+                                                        transit = transit+1;
+                                                    }
+
+                                                    Map<String, Object> stat_map = new HashMap<>();
+                                                    stat_map.put("/Active", active);
+                                                    stat_map.put("/Inactive", inactive);
+                                                    stat_map.put("/Transit", transit);
+                                                    cat_ref.child(instrument.getCategory()).updateChildren(stat_map);
+                                                }
                                                 map.put(instrument.getId(), new Instrument(instrument.getId(), instrument.getCategory(), i_location, i_status, instrument.getImg(), notes.getText().toString(), s_name));
                                                 reference.updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override

@@ -1,21 +1,28 @@
 package com.bdo.shrey.instrumentmanager;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bdo.shrey.instrumentmanager.Adapters.InstrumentAdapter;
 import com.bdo.shrey.instrumentmanager.Models.Instrument;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,6 +34,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Objects;
 
 public class AllInstrumentsActivity extends AppCompatActivity implements View.OnClickListener {
     TextView title;
@@ -41,11 +49,28 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
     FirebaseDatabase database;
     InstrumentAdapter instrument_adapter;
     ArrayList<Instrument> instrument_list;
+    private int k_count = 0;
+    private int s_list_size = 0;
+    private HorizontalScrollView locations;
+    private ArrayList<String> loc_spinner_list;
+    LinearLayout linearLayout ;
+    LinearLayout.LayoutParams linearParams;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_instruments);
+        linearLayout = new LinearLayout(this);
+        linearParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayout.setLayoutParams(linearParams);
+        linearLayout.setPadding(20,10,20,10);
+
+        loc_spinner_list  = new ArrayList<>();
+
+        locations = findViewById(R.id.locations);
+        ShowData();
+        locations.addView(linearLayout);
 
         title = findViewById(R.id.title);
         title.setText("All Instruments");
@@ -110,6 +135,9 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
         i_recyclerView.setAdapter(instrument_adapter);
         showData();
 
+
+//        Toast.makeText(this, "Main instruments = " + String.valueOf(k_count), Toast.LENGTH_SHORT).show();
+
         search_btn.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -124,7 +152,42 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
         });
     }
 
-    private void showData(){
+    private void ShowData() {
+        FirebaseDatabase.getInstance().getReference().child("Locations").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot item : snapshot.getChildren()) {
+                    loc_spinner_list.add(String.valueOf(item.getValue()));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getApplicationContext(), "Error : " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        for (int i = 0; i<loc_spinner_list.size(); i++) {
+            String location = loc_spinner_list.get(i).toString();
+            Button btn = new Button(new ContextThemeWrapper(this, com.google.android.material.R.style.ThemeOverlay_Material3_Button_TonalButton));
+            btn.setId(ViewCompat.generateViewId());
+            btn.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            btn.setText(location);
+            btn.setVisibility(View.VISIBLE);
+            btn.setClickable(true);
+            btn.setPadding(50,50,10,0);
+            btn.setBackgroundResource(R.drawable.rounded_rectangle);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    searchList(location);
+                }
+            });
+            linearLayout.addView(btn);
+        }
+    }
+
+    private void showData() {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -154,12 +217,13 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
             }
         }
         instrument_adapter.searchData(search_list);
+//        s_list_size = instrument_adapter.getItemCount();
     }
 
     @Override
     public void onClick(View view) {
-        int id=view.getId();
-        switch(id){
+        int id = view.getId();
+        switch (id) {
             case R.id.filter_cat:
                 filter = "category";
                 Collections.sort(instrument_list, new Comparator<Instrument>() {
@@ -179,6 +243,7 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
                     }
                 });
                 instrument_adapter.notifyDataSetChanged();
+                ShowData();
                 break;
             case R.id.filter_stat:
                 filter = "status";

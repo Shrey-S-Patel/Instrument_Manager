@@ -82,7 +82,7 @@ public class CreateInstrumentActivity extends AppCompatActivity {
     private ArrayList<Category> catnum_spin_list;
     private ArrayAdapter<String> cat_spinner_adapter, loc_spinner_adapter, stat_spinner_adapter;
     private String cat_select, catnum_select, cat_code, i_code, i_location, i_status;
-    private int catnum, cat_code_count;
+    private int catnum, cat_code_count, cat_a_count, cat_in_count, cat_t_count;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,6 +142,9 @@ public class CreateInstrumentActivity extends AppCompatActivity {
                     catnum_select = String.valueOf(cat.getCat_code_count());
                     cat_code = cat.getCat_code();
                     cat_code_count = cat.getCat_count();
+                    cat_a_count = cat.getActive();
+                    cat_in_count = cat.getInactive();
+                    cat_t_count = cat.getTransit();
                     //Toast.makeText(getApplicationContext(), cat_select + " Selected...", Toast.LENGTH_SHORT).show();
                     generateCode(cat_select, catnum_select);
                 }
@@ -237,7 +240,14 @@ public class CreateInstrumentActivity extends AppCompatActivity {
                                             @Override
                                             public void onSuccess(Uri uri) {
                                                 Instrument instrument = new Instrument(i_code, cat_select, i_location, i_status, uri.toString(), "", "");
-                                                Category cat = new Category(cat_select, cat_code, cat_code_count, catnum);
+                                                if (i_status.equals("Active")){
+                                                    cat_a_count = cat_a_count + 1;
+                                                }else if (i_status.equals("Inactive")){
+                                                    cat_in_count = cat_in_count + 1;
+                                                } else if (i_status.equals("Transit")) {
+                                                    cat_t_count = cat_t_count + 1;
+                                                }
+                                                Category cat = new Category(cat_select, cat_code, cat_code_count, catnum, cat_a_count,cat_in_count,cat_t_count);
                                                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                                                 DatabaseReference myRef = database.getReference("Categories");
                                                 myRef.child(cat_select).setValue(cat);
