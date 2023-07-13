@@ -38,6 +38,7 @@ import java.util.Objects;
 
 public class AllInstrumentsActivity extends AppCompatActivity implements View.OnClickListener {
     TextView title;
+    com.google.android.material.textview.MaterialTextView total;
     ImageView back, scanQR;
     SearchView action_search, search_btn;
     Button f_loc, f_cat, f_stat, f_za;
@@ -49,17 +50,19 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
     FirebaseDatabase database;
     InstrumentAdapter instrument_adapter;
     ArrayList<Instrument> instrument_list;
-    private int k_count = 0;
-    private int s_list_size = 0;
     private HorizontalScrollView locations;
     private ArrayList<String> loc_spinner_list;
     LinearLayout linearLayout ;
     LinearLayout.LayoutParams linearParams;
 
+    int active, inactive, transit = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_instruments);
+        total = findViewById(R.id.total_count);
+
         linearLayout = new LinearLayout(this);
         linearParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -135,7 +138,6 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
         i_recyclerView.setAdapter(instrument_adapter);
         showData();
 
-
 //        Toast.makeText(this, "Main instruments = " + String.valueOf(k_count), Toast.LENGTH_SHORT).show();
 
         search_btn.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -171,11 +173,15 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
             String location = loc_spinner_list.get(i).toString();
             Button btn = new Button(new ContextThemeWrapper(this, com.google.android.material.R.style.ThemeOverlay_Material3_Button_TonalButton));
             btn.setId(ViewCompat.generateViewId());
-            btn.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            params.setMargins(10,5,10,5);
+            btn.setLayoutParams(params);
             btn.setText(location);
+            btn.setTextSize(12);
+            btn.setTextColor(Color.WHITE);
             btn.setVisibility(View.VISIBLE);
             btn.setClickable(true);
-            btn.setPadding(50,50,10,0);
+            btn.setPadding(5,0,5,0);
             btn.setBackgroundResource(R.drawable.rounded_rectangle);
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -195,9 +201,20 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
 
                     Instrument instrument = dataSnapshot.getValue(Instrument.class);
+                    if (instrument.getStatus().equals("Active")){
+                        active = active+1;
+                    }else if (instrument.getStatus().equals("Inactive")){
+                        inactive = inactive+1;
+                    }else if (instrument.getStatus().equals("Transit")){
+                        transit = transit+1;
+                    }
                     instrument_list.add(instrument);
                 }
                 instrument_adapter.notifyDataSetChanged();
+//                total.setText("Total Instruments : " + i_recyclerView.getAdapter().getItemCount());
+                String tot_txt = "Total Instruments: " + i_recyclerView.getAdapter().getItemCount()
+                        + "   (  A: " + active + ",  I: " + inactive + ",  T: " + transit + "  )";
+                total.setText(tot_txt);
             }
 
             @Override
@@ -209,15 +226,34 @@ public class AllInstrumentsActivity extends AppCompatActivity implements View.On
 
     public void searchList(String text) {
         ArrayList<Instrument> search_list = new ArrayList<>();
+        active = 0;
+        inactive = 0;
+        transit = 0;
         for (Instrument instrument : instrument_list) {
             if (instrument.getId().toLowerCase().contains(text.toLowerCase())) {
                 search_list.add(instrument);
+                if (instrument.getStatus().equals("Active")){
+                    active = active+1;
+                }else if (instrument.getStatus().equals("Inactive")){
+                    inactive = inactive+1;
+                }else if (instrument.getStatus().equals("Transit")){
+                    transit = transit+1;
+                }
             } else if (instrument.getLocation().toLowerCase().contains(text.toLowerCase())) {
                 search_list.add(instrument);
+                if (instrument.getStatus().equals("Active")){
+                    active = active+1;
+                }else if (instrument.getStatus().equals("Inactive")){
+                    inactive = inactive+1;
+                }else if (instrument.getStatus().equals("Transit")){
+                    transit = transit+1;
+                }
             }
         }
         instrument_adapter.searchData(search_list);
-//        s_list_size = instrument_adapter.getItemCount();
+        String tot_txt = "Total Instruments: " + i_recyclerView.getAdapter().getItemCount()
+                + "   (  A: " + active + ",  I: " + inactive + ",  T: " + transit + "  )";
+        total.setText(tot_txt);
     }
 
     @Override

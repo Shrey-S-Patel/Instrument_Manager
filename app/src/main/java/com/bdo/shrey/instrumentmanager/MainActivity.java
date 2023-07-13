@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(getApplicationContext(), AccountActivity.class));
             }
         });
-
+/*
         reports = findViewById(R.id.reports);
         reports.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Reports", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(getApplicationContext(), ReportsActivity.class));
             }
-        });
+        });*/
 
         logout = findViewById(R.id.logout_txt);
         logout.setOnClickListener(new View.OnClickListener() {

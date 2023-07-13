@@ -31,18 +31,18 @@
 
             <corners android:radius="25dp" />
 
-            <stroke android:width="3dp"
-                android:color="@color/translucent" />
+            <stroke android:width="2dp"
+                android:color="@color/lavender" />
 
             <gradient android:angle="-90"
                 android:startColor="#00000000"
-                android:endColor="#00000000"  />
+                android:endColor="@color/black"  />
 
             <padding
                 android:left="15dp"
                 android:right="15dp"
-                android:top="5dp"
-                android:bottom="5dp"/>
+                android:top="2dp"
+                android:bottom="2dp"/>
 
         </shape>
     </item>

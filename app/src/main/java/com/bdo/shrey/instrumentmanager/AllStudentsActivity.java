@@ -1,16 +1,22 @@
 package com.bdo.shrey.instrumentmanager;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,6 +38,7 @@ import java.util.Comparator;
 
 public class AllStudentsActivity extends AppCompatActivity implements View.OnClickListener{
 
+    com.google.android.material.textview.MaterialTextView total;
     TextView title;
     ImageView back, scanQR;
     SearchView action_search, search_btn;
@@ -44,11 +51,30 @@ public class AllStudentsActivity extends AppCompatActivity implements View.OnCli
     StudentAdapter student_adapter;
     ArrayList<Student> students_list;
 
+    private HorizontalScrollView locations;
+    private ArrayList<String> loc_spinner_list;
+    LinearLayout linearLayout ;
+    LinearLayout.LayoutParams linearParams;
+    int active, inactive = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_students);
+        total = findViewById(R.id.total_count);
+
+        linearLayout = new LinearLayout(this);
+        linearParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayout.setLayoutParams(linearParams);
+        linearLayout.setPadding(20,10,20,10);
+
+        loc_spinner_list  = new ArrayList<>();
+
+        locations = findViewById(R.id.locations);
+        ShowData();
+        locations.addView(linearLayout);
 
         title = findViewById(R.id.title);
         title.setText("All Students");
@@ -135,8 +161,16 @@ public class AllStudentsActivity extends AppCompatActivity implements View.OnCli
 
                     Student student = dataSnapshot.getValue(Student.class);
                     students_list.add(student);
+                    if (student.getStatus().equals("Active")){
+                        active = active+1;
+                    }else if (student.getStatus().equals("Inactive")){
+                        inactive = inactive+1;
+                    }
                 }
                 student_adapter.notifyDataSetChanged();
+                String tot_txt = "Total Students: " + i_recyclerView.getAdapter().getItemCount()
+                        + "   (  Active: " + active + ",  Inactive: " + inactive + "  )";
+                total.setText(tot_txt);
             }
 
             @Override
@@ -146,18 +180,77 @@ public class AllStudentsActivity extends AppCompatActivity implements View.OnCli
         });
     }
 
+    private void ShowData() {
+        FirebaseDatabase.getInstance().getReference().child("Locations").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot item : snapshot.getChildren()) {
+                    loc_spinner_list.add(String.valueOf(item.getValue()));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getApplicationContext(), "Error : " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        for (int i = 0; i<loc_spinner_list.size(); i++) {
+            String location = loc_spinner_list.get(i).toString();
+            Button btn = new Button(new ContextThemeWrapper(this, com.google.android.material.R.style.ThemeOverlay_Material3_Button_TonalButton));
+            btn.setId(ViewCompat.generateViewId());
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            params.setMargins(10,5,10,5);
+            btn.setLayoutParams(params);
+            btn.setText(location);
+            btn.setTextSize(12);
+            btn.setTextColor(Color.WHITE);
+            btn.setVisibility(View.VISIBLE);
+            btn.setClickable(true);
+            btn.setPadding(5,0,5,0);
+            btn.setBackgroundResource(R.drawable.rounded_rectangle);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    searchList(location);
+                }
+            });
+            linearLayout.addView(btn);
+        }
+    }
+
     public void searchList(String text) {
+        active = 0;
+        inactive = 0;
         ArrayList<Student> search_list = new ArrayList<>();
         for (Student student : students_list) {
             if (student.getId().toLowerCase().contains(text.toLowerCase())) {
                 search_list.add(student);
+                if (student.getStatus().equals("Active")){
+                    active = active+1;
+                }else if (student.getStatus().equals("Inactive")){
+                    inactive = inactive+1;
+                }
             } else if (student.getLocation().toLowerCase().contains(text.toLowerCase())) {
                 search_list.add(student);
+                if (student.getStatus().equals("Active")){
+                    active = active+1;
+                }else if (student.getStatus().equals("Inactive")){
+                    inactive = inactive+1;
+                }
             } else if (student.getName().toLowerCase().contains(text.toLowerCase())) {
                 search_list.add(student);
+                if (student.getStatus().equals("Active")){
+                    active = active+1;
+                }else if (student.getStatus().equals("Inactive")){
+                    inactive = inactive+1;
+                }
             }
         }
         student_adapter.searchData(search_list);
+        String tot_txt = "Total Students: " + i_recyclerView.getAdapter().getItemCount()
+                + "   (  Active: " + active + ",  Inactive: " + inactive + "  )";
+        total.setText(tot_txt);
     }
 
     @Override
@@ -181,6 +274,7 @@ public class AllStudentsActivity extends AppCompatActivity implements View.OnCli
                     }
                 });
                 student_adapter.notifyDataSetChanged();
+                ShowData();
                 break;
             case R.id.filter_assigned:
                 Collections.sort(students_list, new Comparator<Student>() {
